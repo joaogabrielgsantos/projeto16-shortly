@@ -70,8 +70,54 @@ async function getUrl(req, res) {
 
 }
 
+async function getShortUrl(req, res) {
+    const { shortUrl } = req.params
+
+    try {
+        const link = await connection.query(
+            `SELECT * FROM links WHERE "shortUrl" = $1`, [shortUrl]
+        );
+
+        if (link.rowCount === 0){
+            return res.sendStatus(STATUS_CODE.NOT_FOUND)
+        }
+
+        const { id } = link.rows[0]
+
+        
+
+
+        const visit = await connection.query(
+            `SELECT * FROM visits WHERE "linkId" = $1`, [id]
+        );
+
+        console.log(visit.rows[0].views+1);
+        if (visit.rowCount === 0){
+            const insertVisit = await connection.query(
+                `INSERT INTO visits ("linkId") VALUES ($1);`, [id]
+            );
+        } else {
+            const updateVisit = await connection.query(
+                `UPDATE visits SET views = $1 WHERE "linkId" = $2;`, [visit.rows[0].views+1, id]
+            )
+        }
 
 
 
 
-export { postUrl, getUrl }
+
+        return res.redirect(`/urls/${id}`)
+
+    } catch (error) {
+        console.error(error)
+        return res.status(STATUS_CODE.SERVER_ERROR).send(error.message);
+    }
+
+}
+
+
+
+
+
+
+export { postUrl, getUrl, getShortUrl }
