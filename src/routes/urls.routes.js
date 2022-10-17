@@ -11,9 +11,6 @@ urlRouter.delete("/urls/:idUrl", deleteUrl) ;
 
 
 
-urlRouter.get ('/statusurl', (req, res)=>{
-    res.send('Rota url funcionando!')
-})
 
 
 export default urlRouter;

@@ -30,11 +30,9 @@ async function signUp(req, res) {
 
 async function signIn(req, res) {
     const { email, password } = req.body;
-    console.log("Tá chamando SignIn")
     if (!email || !password) {
         return res.sendStatus(STATUS_CODE.UNPROCESSABLE_ENTITY);
     }
-
 
     try {
 

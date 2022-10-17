@@ -27,8 +27,16 @@ async function postUrl(req, res) {
             return res.sendStatus(STATUS_CODE.UNAUTHORIZED);
         }
 
-        await connection.query(
+        const insertLink = await connection.query(
             `INSERT INTO links (url, "shortUrl", "userId") VALUES ($1, $2, $3);`, [url, shortUrl, session.rows[0].userId]
+        );
+        const findLink = await connection.query(
+            `SELECT * FROM links WHERE "shortUrl" = $1`, [shortUrl]
+        );
+        
+        
+        const insertVisit = await connection.query(
+            `INSERT INTO visits ("linkId") VALUES ($1);`, [findLink.rows[0].id]
         );
 
         return res.status(STATUS_CODE.OK).send(shortUrl);
@@ -89,7 +97,7 @@ async function getShortUrl(req, res) {
             `SELECT * FROM visits WHERE "linkId" = $1`, [id]
         );
 
-        console.log(visit.rows[0].views + 1);
+        
         if (visit.rowCount === 0) {
             const insertVisit = await connection.query(
                 `INSERT INTO visits ("linkId") VALUES ($1);`, [id]
@@ -155,9 +163,6 @@ async function deleteUrl(req, res) {
         return res.status(STATUS_CODE.SERVER_ERROR).send(error.message);
     }
 }
-
-
-
 
 
 
