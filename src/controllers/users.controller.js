@@ -59,7 +59,7 @@ async function getRanking(req, res) {
     try {
 
         const ranking = await connection.query(
-            `SELECT users.id, users.name, COUNT(links) AS "linksCount", SUM(views) AS "visitCount"
+            `SELECT users.id, users.name, COUNT(links) AS "linksCount", COALESCE(SUM(views), 0) AS "visitCount"
             FROM users
             left JOIN links ON links."userId" = users.id
             left JOIN visits ON links.id = visits."linkId"
