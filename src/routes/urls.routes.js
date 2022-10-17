@@ -5,7 +5,7 @@ import { validateNewUrl } from "../middlewares/urls.middleware.js";
 const urlRouter = express.Router();
 
 urlRouter.post("/urls/shorten", validateNewUrl, postUrl) ;
-urlRouter.get("/urls/:id", getUrl) ;
+urlRouter.get("/urls/:idUrl", getUrl) ;
 
 
 

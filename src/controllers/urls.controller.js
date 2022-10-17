@@ -43,9 +43,35 @@ async function postUrl(req, res) {
 
 
 
-async function getUrl (){
+async function getUrl(req, res) {
+    const { idUrl } = req.params
+
+    try {
+        const link = await connection.query(
+            `SELECT * FROM links WHERE id = $1`, [idUrl]
+        );
+
+        if (link.rowCount === 0){
+            return res.sendStatus(STATUS_CODE.NOT_FOUND)
+        }
+
+        const { id, url, shortUrl } = link.rows[0]
+
+        const format = { id, url, shortUrl }
+
+
+
+        return res.status(STATUS_CODE.OK).send(format);
+
+    } catch (error) {
+        console.error(error)
+        return res.status(STATUS_CODE.SERVER_ERROR).send(error.message);
+    }
 
 }
+
+
+
 
 
 export { postUrl, getUrl }
