@@ -51,7 +51,7 @@ async function getUrl(req, res) {
             `SELECT * FROM links WHERE id = $1`, [idUrl]
         );
 
-        if (link.rowCount === 0){
+        if (link.rowCount === 0) {
             return res.sendStatus(STATUS_CODE.NOT_FOUND)
         }
 
@@ -78,33 +78,27 @@ async function getShortUrl(req, res) {
             `SELECT * FROM links WHERE "shortUrl" = $1`, [shortUrl]
         );
 
-        if (link.rowCount === 0){
+        if (link.rowCount === 0) {
             return res.sendStatus(STATUS_CODE.NOT_FOUND)
         }
 
         const { id } = link.rows[0]
-
-        
 
 
         const visit = await connection.query(
             `SELECT * FROM visits WHERE "linkId" = $1`, [id]
         );
 
-        console.log(visit.rows[0].views+1);
-        if (visit.rowCount === 0){
+        console.log(visit.rows[0].views + 1);
+        if (visit.rowCount === 0) {
             const insertVisit = await connection.query(
                 `INSERT INTO visits ("linkId") VALUES ($1);`, [id]
             );
         } else {
             const updateVisit = await connection.query(
-                `UPDATE visits SET views = $1 WHERE "linkId" = $2;`, [visit.rows[0].views+1, id]
+                `UPDATE visits SET views = $1 WHERE "linkId" = $2;`, [visit.rows[0].views + 1, id]
             )
         }
-
-
-
-
 
         return res.redirect(`/urls/${id}`)
 
@@ -117,7 +111,57 @@ async function getShortUrl(req, res) {
 
 
 
+async function deleteUrl(req, res) {
+    const { idUrl } = req.params;
+    const { authorization } = req.headers;
+
+    const token = authorization?.replace('Bearer ', '');
+
+    if (!token) return res.sendStatus(STATUS_CODE.UNAUTHORIZED);
+    if (!idUrl) return res.sendStatus(STATUS_CODE.UNPROCESSABLE_ENTITY);
 
 
 
-export { postUrl, getUrl, getShortUrl }
+    try {
+        const verifyUrlUser = await connection.query(
+            `SELECT sessions.token, users.name, links.url FROM users
+            JOIN links ON users.id = links."userId"
+            JOIN sessions ON users.id = sessions."userId"
+            WHERE links.id = $1;`, [`${idUrl}`]
+        );
+        
+        if (verifyUrlUser.rowCount === 0 ){
+            return res.sendStatus(STATUS_CODE.NOT_FOUND);
+        }
+
+        if (verifyUrlUser.rows[0].token !== token ) {
+            return res.sendStatus(STATUS_CODE.UNAUTHORIZED);
+        }
+        
+        
+
+        const deleteVisit = await connection.query(
+            `DELETE FROM visits WHERE "linkId" = $1`, [idUrl]
+        );
+
+        const deleteLink = await connection.query(
+            `DELETE FROM links WHERE "id" = $1`, [idUrl]
+        );
+
+        return res.sendStatus(204);
+
+    } catch (error) {
+        console.error(error)
+        return res.status(STATUS_CODE.SERVER_ERROR).send(error.message);
+    }
+}
+
+
+
+
+
+
+
+
+
+export { postUrl, getUrl, getShortUrl, deleteUrl }
